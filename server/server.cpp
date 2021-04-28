@@ -45,8 +45,8 @@ server_array servarr;
 initServArr(&servarr);
 int cost[4][4];
 initArr(cost);
-top_file = argv[2];
-routing_interval = argv[4];
+char* top_file = argv[2];
+char* routing_interval = argv[4];
 
 
     ifstream myfile(top_file);
