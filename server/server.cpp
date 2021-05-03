@@ -86,7 +86,9 @@ int main(int argc, char* argv[]) {
         displayCost(cost);
         myfile.close();
 
-        //server1.packets++; for testing, would be incremented when server gets a vector
+        //for testing purposes
+        //would be incremented when server gets a vector 
+        server1.packets++; 
         packets(server1); 
     }
     else cout << "Unable to open file" << endl;
@@ -168,5 +170,5 @@ void packets(server s) {
     int packets = s.packets;
     cout << "Number of packets: " << packets << endl;
     s.packets = 0; //sets packets to 0 after command has been called
-    //cout << s.packets << endl; 
+    cout << "After initialization: " << s.packets << endl; 
 }
