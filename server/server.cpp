@@ -52,6 +52,14 @@ int main(int argc, char* argv[]) {
     char* routing_interval = argv[4];
     int sockfd; 
 
+    string tt = argv[1];
+    string it = argv[3];
+
+    if(tt != "-t" ||it != "-i"){
+        printf("Command line input incorrect. Please try again.\n");
+        exit;
+    }else{
+
     ifstream myfile(top_file);
 
     if (myfile.is_open())
@@ -85,8 +93,8 @@ int main(int argc, char* argv[]) {
         //for testing purposes
         server1.packets++; 
         packets(server1); 
+       }
     }
-    else cout << "Unable to open file" << endl;
 }
 void fillServInfo() {
 
