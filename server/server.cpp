@@ -62,8 +62,7 @@ int main(int argc, char* argv[]) {
 
     ifstream myfile(top_file);
 
-    if (myfile.is_open())
-    {
+    if (myfile.is_open()){
         string line;
         int i = 0;
         vector<int> r;
@@ -93,6 +92,8 @@ int main(int argc, char* argv[]) {
         //for testing purposes
         server1.packets++; 
         packets(server1); 
+       }else{
+            printf("Unable to open file. Please try again.");
        }
     }
 }
