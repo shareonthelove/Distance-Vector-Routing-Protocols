@@ -52,10 +52,10 @@ int main(int argc, char* argv[]) {
     char* routing_interval = argv[4];
     int sockfd; 
 
-    string tt = argv[1];
-    string it = argv[3];
+    string tinput = argv[1];
+    string iinput = argv[3];
 
-    if(tt != "-t" ||it != "-i"){
+    if(tinput != "-t" ||iinput != "-i"){
         printf("Command line input incorrect. Please try again.\n");
         exit;
     }else{
