@@ -537,15 +537,7 @@ void connector(connection_array *ca, char* ip, int port, char* my_ip, int my_por
                 return;
             }
         }
-        if (strcmp(ca->conns[i]->ip_addr, ip) && (ca->conns[i]->port == port)) {
-            printf("This connection already exists, please try again.\n");
-            return;
-        }
-        else if (!(strcmp(my_ip, ip)) && (my_port == port)) {
-            printf("You cannot connect to yourself, please try again.\n");
-            return;
-        }
-        else if (ca->count == 10) {
+       if (ca->count == 4) {
             printf("You're at the maxmium number of connections [10]. Please terminate a connection to add another.\n");
             return;
         }
