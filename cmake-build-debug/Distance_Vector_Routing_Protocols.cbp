@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="Distance_Vector_Routing_Protocols"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Distance_Vector_Routing_Protocols">
+				<Option output="/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Distance_Vector_Routing_Protocols" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/10"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/10"/>
+					<Add directory="/usr/include/c++/10/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/10/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 Distance_Vector_Routing_Protocols"/>
+					<CompileFile command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Distance_Vector_Routing_Protocols/fast">
+				<Option output="/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Distance_Vector_Routing_Protocols" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/include/c++/10"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/10"/>
+					<Add directory="/usr/include/c++/10/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/10/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 Distance_Vector_Routing_Protocols/fast"/>
+					<CompileFile command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j2 -f &quot;/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/server/server.cpp">
+			<Option target="Distance_Vector_Routing_Protocols"/>
+		</Unit>
+		<Unit filename="/home/georgesanchez/Documents/Github/222/Distance-Vector-Routing-Protocols/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

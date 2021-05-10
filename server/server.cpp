@@ -66,6 +66,9 @@ void initArr(int cost[][4]);
 vector<int> findNeighbors(int cost[][4],int serverID);
 void packets (server s);
 
+void displayCommand(int cost[4][4]);
+void disableCommand(int serverID, server_array serverArray, int cost[4][4]);
+
 void initialize_connection_array(connection_array *ca);
 void add_connection_node(connection_node *cn, connection_array *ca);
 void remove_connection_node(connection_node *cn, connection_array *ca);
@@ -79,20 +82,18 @@ void disable(connection_array *ca, int num,server_array servarr);
 
 int main(int argc, char* argv[]){
 
-
-server server1,server2,server3,server4;
-server_array servarr;
-initServArr(&servarr);
-int cost[4][4];
-initArr(cost);
-int myID;
-int routingUpdate;
-vector<int> nbrID;
-char* top_file = argv[2];
-char* routing_interval = argv[4];
-int sockfd;
-int connectionCount=0;
-
+	server server1,server2,server3,server4;
+	server_array servarr;
+	initServArr(&servarr);
+	int cost[4][4];
+	initArr(cost);
+	int myID;
+	int routingUpdate;
+	vector<int> nbrID;
+	char* top_file = argv[2];
+	char* routing_interval = argv[4];
+	int sockfd;
+	int connectionCount=0;
 
     string tinput = argv[1];
     string iinput = argv[3];
@@ -103,9 +104,7 @@ int connectionCount=0;
     }else{
     ifstream myfile(top_file);
 
-
         if(myfile.is_open()){
-
         string line;
         int i=0;
         vector<int> r;
@@ -204,14 +203,12 @@ int connectionCount=0;
 		if (listener < 0) {
 			continue;
 		}
-
 		setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
 		if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) {
 			close(listener);
 			continue;
 		}
-
 		break;
 	}
 
@@ -233,8 +230,7 @@ int connectionCount=0;
 	read_fdmax = listener;
 	send_fdmax = 0;
 	fdmax = listener;
-    
-  
+
 	if(!nbrID.empty()){
 		for(int i=0;i<nbrID.size();i++){
 			regex_t ip_regex, port_regex; int reti, their_port;
@@ -298,6 +294,39 @@ int connectionCount=0;
 				}
 
 			}
+			else if(strcmp(token,"display")==0){
+				try{
+					displayCommand(cost);
+					cout<<token<< "SUCCESS"<<endl;
+				}
+				catch(int err){
+					cout<<token<< err<<endl;
+				}
+				
+			}
+            else if(strcmp(token,"disable")==0){
+                try{
+                    std::string text = "";
+                    cin>>text;
+                    std::istringstream iss (text);
+                    int serverid;
+                    iss >> serverid;
+                    if (iss.fail()) {
+                        // something wrong happened
+                        cout<<token;
+                        std::cerr << "Server ID is not an integer";
+                    }
+                    else{
+                        disableCommand(serverid, servarr, cost);
+                        cout<<token<< "SUCCESS"<<endl;
+                    }
+
+                }
+                catch(int err){
+                    cout<<token<< err<<endl;
+                }
+
+            }
 			else if(strcmp(token,"crash")==0){
 				char *message;
 				string s ="crash";
@@ -306,6 +335,10 @@ int connectionCount=0;
 							send(servarr.servs[nbrID[i]]->sockfd,message,strlen(message),0);
 						}
 						exit(1);
+			}
+
+			else{
+                cout<<"Error: " << token<< " is an invalid command."<<endl;
 			}
 			
 		}
@@ -472,31 +505,26 @@ vector<int> findNeighbors(int cost[][4], int serverID){
 	return temp;
 }
 connection_node* create_connection_node(int sock_fd) {
-
 	connection_node *cn;
     cn = (connection_node*)malloc(sizeof(connection_node));
 	int port;
 	struct sockaddr_in addr;
 	socklen_t addr_size = sizeof(struct sockaddr_in);
 	int res = getpeername(sock_fd, (struct sockaddr *)&addr, &addr_size);
-
 	strcpy(cn->ip_addr, inet_ntoa(addr.sin_addr));
 	//printf("IP Address: %s\n", cn->ip_addr);
 	cn->port = ntohs(addr.sin_port);
 	cn->sock_fd = sock_fd;
-
 	return cn;
 }
 
 void initialize_connection_array(connection_array *ca) {
 	ca->count = 1;
-
 	int i;
 	for (i = 0; i < 10; i++) {
 		ca->conns[i] = NULL;
 		ca->free_conns[i] = 1;
 	}
-
 	return;
 }
 
@@ -510,7 +538,6 @@ void add_connection_node(connection_node *cn, connection_array *ca) {
 			return;
 		}
 	}
-
 	perror("Connection Array full please remove a connection to add this one.");
 	return;
 }
@@ -527,14 +554,12 @@ void remove_connection_node(connection_node *cn, connection_array *ca) {
 			return;
 		}
 	}
-
 	perror("Could not find connection in the connection array.");
 }
 
 void remove_connection_node_idx(int idx, connection_array *ca) {
 	if (ca->free_conns[idx] == 0) {
 		free(ca->conns[idx]);
-
 		ca->conns[idx] = NULL;
 		ca->count--;
 		ca->free_conns[idx] = 1;
@@ -562,7 +587,6 @@ void close_connection_array(connection_array *ca) {
 
 
 int connector(connection_array *ca, char* ip, int port, char* my_ip, int my_port, fd_set *read, fd_set *send) {
-
     int sockfd;
     int connected;
 
@@ -655,7 +679,6 @@ void packets(server s) {
 }
 
 void disable(connection_array *ca, int nbr, server_array servarr) {
-
 	    if (ca->free_conns[nbr - 1] != 1) {
 			close(servarr.servs[nbr-1]->sockfd);
 	        remove_connection_node_idx(nbr - 1, ca);
@@ -664,4 +687,40 @@ void disable(connection_array *ca, int nbr, server_array servarr) {
 	    else {
 	        printf("Connection [%d] does not exist. Please terminate an exisiting connection.\n", nbr);
 	    }
-	}
+}
+
+
+void disableCommand( int serverID, server_array serverArray, int cost[4][4]){
+    int severArrayNum =0;
+    for(int i=0; i<serverArray.count; ++i){
+        if(serverArray.servs[i]->serverID==serverID){
+            severArrayNum=i;
+            break;
+        }
+    }
+//set cost of neibors to infinity to infinity
+    for(int j=0;j<4;j++) {
+        //no null and self loops
+        if (cost[severArrayNum][j] != NULL && severArrayNum != j) {
+            cost[severArrayNum][j] = std::numeric_limits<int>::max();
+            cost[j][severArrayNum] = std::numeric_limits<int>::max();
+        }
+    }
+
+
+
+}
+
+
+
+
+void displayCommand(int cost[4][4]){
+   for(int i =0;i<4;i++){
+        for(int j=0;j<4;j++){
+            //no null and self loops
+			if(cost[i][j]!=NULL && i!=j){
+				cout<< i << j<<cost[i][j]<<endl;
+			}
+        }
+    }
+}
