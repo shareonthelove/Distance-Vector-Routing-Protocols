@@ -242,7 +242,7 @@ int connectionCount=0;
 				char *connection_ip, *port_str;
 				char *newline_ip, *newline_port;
 
-				int result;
+				int result=0;
 				their_port = servarr.servs[nbrID[i]-1]->port;
 				connection_ip=servarr.servs[nbrID[i]-1]->ip;
 				char* my_ip;
@@ -256,6 +256,7 @@ int connectionCount=0;
 				result = connector(&ca, connection_ip, their_port, my_ip, my_port, &master_read, &master_send);
 				if(result!=0){
 					servarr.servs[nbrID[i]-1]->sockfd=result;
+					printf("NeighborID: %d, Sockfd:%d \n", nbrID[i],result);
 				}
 				free(my_ip);
 		}
@@ -292,6 +293,9 @@ int connectionCount=0;
 				vector<int>::iterator it=find(nbrID.begin(),nbrID.end(),idx);
 				if(it!=nbrID.end()){
 					disable(&ca, idx,servarr);
+					FD_CLR(servarr.servs[idx-1]->sockfd,&master_read);
+					FD_CLR(servarr.servs[idx-1]->sockfd,&master_send);
+
 					nbrID.erase(it);
 				}else{
 					printf("serverID %d, is not a neighbor",idx);
@@ -320,10 +324,10 @@ int connectionCount=0;
 				//needed a way to know which new sockfd is for our neihbors. Could not figure out a way to get neighbors listening port
 				
 				servarr.servs[nbrID[connectionCount]-1]->sockfd=newfd;//assign new connection socket into server struct
-				printf("neighborid: %d , connectsockfd: %d", nbrID[connectionCount],servarr.servs[nbrID[connectionCount]-1]->sockfd);
+				printf("neighborid:%d , connectsockfd:%d ", nbrID[connectionCount],servarr.servs[nbrID[connectionCount]-1]->sockfd);
 				connectionCount++;
 				printf("Count: %d\n", ca.count);
-				if (ca.count >= 10) {
+				if (ca.count >= 4) {
 					int bytes_sent;
 					char rejection[]  = "Rejected connection: The client you are trying to connect to is full. Try again later.";
 					bytes_sent = send(newfd, rejection, strlen(rejection), 0);
@@ -361,7 +365,7 @@ int connectionCount=0;
 						printf("Connection [%d] hung up, removing from list.\n", k+1);
 						FD_CLR(ca.conns[k]->sock_fd, &master_read);
 						FD_CLR(ca.conns[k]->sock_fd, &master_send);
-						remove_connection_node_idx(k+1, &ca);
+						//remove_connection_node_idx(k+1, &ca);
 					}
 					else perror("recv");
 				} else { // got some data
@@ -608,7 +612,7 @@ int connector(connection_array *ca, char* ip, int port, char* my_ip, int my_port
         // Checking if the connection was successful
         if((connected = connect(sockfd, (struct sockaddr *)&server_add, sizeof(server_add))) < 0) {
             printf("Connection was unsuccessful. Please try again.\n");
-			return sockfd;
+			return 0;
         }
         else {
             connection_node *cn = create_connection_node(sockfd);
@@ -616,7 +620,7 @@ int connector(connection_array *ca, char* ip, int port, char* my_ip, int my_port
 	        FD_SET(sockfd, read);
 	        FD_SET(sockfd, send);
             printf("Connection established with %s, on port %d!\n", ip, port);
-            return 0;
+            return sockfd;
         }
     }
 	return 0;
@@ -656,12 +660,10 @@ void packets(server s) {
 
 void disable(connection_array *ca, int nbr, server_array servarr) {
 
-	    if (ca->free_conns[nbr - 1] != 1) {
+	   
 			close(servarr.servs[nbr-1]->sockfd);
 	        remove_connection_node_idx(nbr - 1, ca);
 	        printf("Connection [%d] was terminated.\n", nbr);
-	    }
-	    else {
-	        printf("Connection [%d] does not exist. Please terminate an exisiting connection.\n", nbr);
-	    }
+	    
 	}
+
