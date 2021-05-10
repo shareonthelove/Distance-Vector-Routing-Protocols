@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <linux/if_link.h>
 #include <regex.h>
+#include <algorithm>
 
 #define MAX_LINE_LENGTH 80
 using namespace std;
@@ -30,12 +31,13 @@ typedef struct server {
     int     port;  
     char    ip[20]; 
 	int		packets;
+	int		sockfd;
 } server;
 
 typedef struct server_array {
     int         count;
     server*    servs[4]; //I set it to 4, we can up the amount if needed
-    int        free_slot[4];
+    int        free_slot[4];	
 } server_array;
 
 typedef struct costs {
@@ -62,17 +64,18 @@ int initCost(int cost_arr[][4],string line);
 void displayCost(int cost[][4]);
 void initArr(int cost[][4]);
 vector<int> findNeighbors(int cost[][4],int serverID);
-void packets (server *s);
+void packets (server s);
 
 void initialize_connection_array(connection_array *ca);
 void add_connection_node(connection_node *cn, connection_array *ca);
 void remove_connection_node(connection_node *cn, connection_array *ca);
 void remove_connection_node_idx(int idx, connection_array *ca);
 void close_connection_array(connection_array *ca);
-void connector(connection_array *ca, char* ip, int port, char* my_ip, int my_port, fd_set *read, fd_set *send);
+int connector(connection_array *ca, char* ip, int port, char* my_ip, int my_port, fd_set *read, fd_set *send);
 void *get_in_addr(struct sockaddr *sa);
 connection_node* create_connection_node(int sock_fd);
 void myip(char* ip);
+void disable(connection_array *ca, int num,server_array servarr);
 
 int main(int argc, char* argv[]){
 
@@ -88,10 +91,12 @@ vector<int> nbrID;
 char* top_file = argv[2];
 char* routing_interval = argv[4];
 int sockfd;
+int connectionCount=0;
+
 
     string tinput = argv[1];
     string iinput = argv[3];
-
+	
     if(tinput != "-t" ||iinput != "-i"){
         printf("Command line input incorrect. Please try again.\n");
         exit(1);
@@ -125,10 +130,8 @@ int sockfd;
         displayCost(cost);
         myfile.close();
 
-		//need to initialize, for testing purposes
-        server1.packets = 0;
-        server1.packets++;
-        packets(&server1); 
+		server1.packets++; 
+        packets(server1); 
      }else {
 		 cout<<"Unable to open file";
 		 exit(1);
@@ -239,7 +242,7 @@ int sockfd;
 				char *connection_ip, *port_str;
 				char *newline_ip, *newline_port;
 
-
+				int result;
 				their_port = servarr.servs[nbrID[i]-1]->port;
 				connection_ip=servarr.servs[nbrID[i]-1]->ip;
 				char* my_ip;
@@ -250,8 +253,10 @@ int sockfd;
 				my_port = servarr.servs[myID-1]->port;
 				printf("connecting to %s, on port %d\n",connection_ip,their_port);
 
-				connector(&ca, connection_ip, their_port, my_ip, my_port, &master_read, &master_send);
-				
+				result = connector(&ca, connection_ip, their_port, my_ip, my_port, &master_read, &master_send);
+				if(result!=0){
+					servarr.servs[nbrID[i]-1]->sockfd=result;
+				}
 				free(my_ip);
 		}
 	}
@@ -266,6 +271,42 @@ int sockfd;
 		
 		if (FD_ISSET(0, &read_fds)) { // Handle command input
 			// command input
+			char *token;
+			fgets(buf,256,stdin);
+			token=strtok(buf," ");
+			char *newline =strchr(token, '\n');
+			if(newline)*newline=0;
+			if(strcmp(token,"disable")==0){
+				char *id_str, *newline_idx;
+				int idx;
+
+				id_str = strtok(NULL, " ");
+				if (id_str == NULL) {
+					printf("error: USAGE: terminate <connection id>\n");
+					continue;
+				}
+				newline_idx = strchr(id_str, '\n');
+				if (newline_idx) *newline_idx = 0;
+
+				idx = atoi(id_str);
+				vector<int>::iterator it=find(nbrID.begin(),nbrID.end(),idx);
+				if(it!=nbrID.end()){
+					disable(&ca, idx,servarr);
+					nbrID.erase(it);
+				}else{
+					printf("serverID %d, is not a neighbor",idx);
+				}
+
+			}
+			else if(strcmp(token,"crash")==0){
+				char *message;
+				string s ="crash";
+				strcpy(message,s.c_str());
+				for(int i=0;i<nbrID.size();i++){
+							send(servarr.servs[nbrID[i]]->sockfd,message,strlen(message),0);
+						}
+						exit(1);
+			}
 			
 		}
 
@@ -276,6 +317,11 @@ int sockfd;
 			if (newfd == -1) {
 				perror("accept");
 			} else {
+				//needed a way to know which new sockfd is for our neihbors. Could not figure out a way to get neighbors listening port
+				
+				servarr.servs[nbrID[connectionCount]-1]->sockfd=newfd;//assign new connection socket into server struct
+				printf("neighborid: %d , connectsockfd: %d", nbrID[connectionCount],servarr.servs[nbrID[connectionCount]-1]->sockfd);
+				connectionCount++;
 				printf("Count: %d\n", ca.count);
 				if (ca.count >= 10) {
 					int bytes_sent;
@@ -302,7 +348,7 @@ int sockfd;
 
 					add_connection_node(cn, &ca);
 	
-					printf(" New connection from %s on socket %d\n", inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr *)&remoteaddr), remoteIP, INET6_ADDRSTRLEN), newfd);
+					printf(" New connection from %s on port %d\n", inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr *)&remoteaddr), remoteIP, INET6_ADDRSTRLEN), cn->port);
 				}
 			}
 		}
@@ -322,6 +368,13 @@ int sockfd;
 					printf("Message received from %s\n", ca.conns[k]->ip_addr);
 					printf("Sender's port: %d\n", ca.conns[k]->port);
 					printf("Message: \"%s\"\n", buf);
+					if(strcmp(buf,"crash")!=0){
+						cout<<buf<<endl;
+						for(int i=0;i<nbrID.size();i++){
+							send(ca.conns[i]->sock_fd,buf,strlen(buf),0);
+						}
+						exit(4);
+					}
 				}
 			}
 		}
@@ -505,7 +558,10 @@ void close_connection_array(connection_array *ca) {
 	return;
 }
 
-void connector(connection_array *ca, char* ip, int port, char* my_ip, int my_port, fd_set *read, fd_set *send) {
+
+
+
+int connector(connection_array *ca, char* ip, int port, char* my_ip, int my_port, fd_set *read, fd_set *send) {
 
     int sockfd;
     int connected;
@@ -517,7 +573,7 @@ void connector(connection_array *ca, char* ip, int port, char* my_ip, int my_por
             // Setting up the socket for connection
             if (!strcmp(my_ip, ip) && (my_port == port)) {
                 printf("You cannot connect to yourself, please try again.\n");
-                return;
+                return 0;
             }
             sockfd = socket(AF_INET, SOCK_STREAM, 0);
             struct sockaddr_in server_add;
@@ -528,18 +584,18 @@ void connector(connection_array *ca, char* ip, int port, char* my_ip, int my_por
             // Checking if the connection was successful
             if((connected = connect(sockfd, (struct sockaddr *)&server_add, sizeof(server_add))) < 0) {
                 printf("Connection was unsuccessful. Please try again.\n");
-				return;
+				return 0;
             }
             else {
                 connection_node *cn = create_connection_node(sockfd);
                 add_connection_node(cn, ca);
                 printf("Connection to %s, on port %d!\n", ip, port);
-                return;
+                return sockfd;
             }
         }
        if (ca->count == 4) {
             printf("You're at the maxmium number of connections [10]. Please terminate a connection to add another.\n");
-            return;
+            return 0;
         }
 
         // Setting up the socket for connection
@@ -552,7 +608,7 @@ void connector(connection_array *ca, char* ip, int port, char* my_ip, int my_por
         // Checking if the connection was successful
         if((connected = connect(sockfd, (struct sockaddr *)&server_add, sizeof(server_add))) < 0) {
             printf("Connection was unsuccessful. Please try again.\n");
-			return;
+			return sockfd;
         }
         else {
             connection_node *cn = create_connection_node(sockfd);
@@ -560,9 +616,10 @@ void connector(connection_array *ca, char* ip, int port, char* my_ip, int my_por
 	        FD_SET(sockfd, read);
 	        FD_SET(sockfd, send);
             printf("Connection established with %s, on port %d!\n", ip, port);
-            return;
+            return 0;
         }
     }
+	return 0;
 }
 void *get_in_addr(struct sockaddr *sa) {
 	if (sa->sa_family == AF_INET) {
@@ -590,10 +647,21 @@ void myip(char* ip) {
         }
 	}
 }
-
-void packets(server *s) {
-    int packets = s->packets;
+void packets(server s) {
+    int packets = s.packets;
     cout << "Number of packets: " << packets << endl;
-    s->packets = 0; //sets packets to 0 after command has been called
-    cout << "Reset: " << s->packets << endl; 
+    s.packets = 0; //sets packets to 0 after command has been called
+    cout << "Reset: " << s.packets << endl; 
 }
+
+void disable(connection_array *ca, int nbr, server_array servarr) {
+
+	    if (ca->free_conns[nbr - 1] != 1) {
+			close(servarr.servs[nbr-1]->sockfd);
+	        remove_connection_node_idx(nbr - 1, ca);
+	        printf("Connection [%d] was terminated.\n", nbr);
+	    }
+	    else {
+	        printf("Connection [%d] does not exist. Please terminate an exisiting connection.\n", nbr);
+	    }
+	}
