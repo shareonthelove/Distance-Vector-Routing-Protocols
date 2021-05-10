@@ -148,7 +148,15 @@ int connectionCount=0;
 	if(!nbrID.empty()){
 		printf("neighbors: ");
 	for(int i=0;i<nbrID.size();i++){
+		if(nbrID.size()< 3){
+			cout<<nbrID[i] << " ";
+			if(i == 1){
+				cout << "inf";
+			}
+		}
+		else{
 		cout<<nbrID[i]<<" ";
+		}
 		}
 	}
 
