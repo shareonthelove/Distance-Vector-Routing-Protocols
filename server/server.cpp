@@ -64,7 +64,7 @@ int initCost(int cost_arr[][4],string line);
 void displayCost(int cost[][4]);
 void initArr(int cost[][4]);
 vector<int> findNeighbors(int cost[][4],int serverID);
-void packets (server s);
+void packets (server *s);
 
 void initialize_connection_array(connection_array *ca);
 void add_connection_node(connection_node *cn, connection_array *ca);
@@ -130,8 +130,10 @@ int connectionCount=0;
         displayCost(cost);
         myfile.close();
 
-		server1.packets++; 
-        packets(server1); 
+		//need to initialize to 0
+		server1.packets = 0; 
+		server1.packets++; //for testing
+        packets(&server1); 
      }else {
 		 cout<<"Unable to open file";
 		 exit(1);
@@ -659,11 +661,11 @@ void myip(char* ip) {
         }
 	}
 }
-void packets(server s) {
-    int packets = s.packets;
+void packets(server *s) {
+    int packets = s->packets;
     cout << "Number of packets: " << packets << endl;
-    s.packets = 0; //sets packets to 0 after command has been called
-    cout << "Reset: " << s.packets << endl; 
+    s->packets = 0; //sets packets to 0 after command has been called
+    cout << "Reset: " << s->packets << endl; 
 }
 
 void disable(connection_array *ca, int nbr, server_array servarr) {
