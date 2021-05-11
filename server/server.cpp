@@ -31,7 +31,7 @@ typedef struct server {
     int     port;  
     char    ip[20]; 
 	int		packets;
-	int		sockfd;
+	int		sockfd=0;
 } server;
 
 typedef struct server_array {
@@ -75,7 +75,7 @@ int connector(connection_array *ca, char* ip, int port, char* my_ip, int my_port
 void *get_in_addr(struct sockaddr *sa);
 connection_node* create_connection_node(int sock_fd);
 void myip(char* ip);
-void disable(connection_array *ca, int num,server_array servarr);
+void disable(connection_array *ca, int num,server_array servarr, vector<int> nbrID);
 
 int main(int argc, char* argv[]){
 
@@ -134,6 +134,7 @@ int connectionCount=0;
 		server1.packets = 0; 
 		server1.packets++; //for testing
         packets(&server1); 
+		
      }else {
 		 cout<<"Unable to open file";
 		 exit(1);
@@ -302,7 +303,7 @@ int connectionCount=0;
 				idx = atoi(id_str);
 				vector<int>::iterator it=find(nbrID.begin(),nbrID.end(),idx);
 				if(it!=nbrID.end()){
-					disable(&ca, idx,servarr);
+					disable(&ca, idx,servarr,nbrID);
 					FD_CLR(servarr.servs[idx-1]->sockfd,&master_read);
 					FD_CLR(servarr.servs[idx-1]->sockfd,&master_send);
 
@@ -313,11 +314,12 @@ int connectionCount=0;
 
 			}
 			else if(strcmp(token,"crash")==0){
-				char *message;
-				string s ="crash";
-				strcpy(message,s.c_str());
+				char *message="crash";
+				int len=strlen(message);
+				//string s ="crash";
+				//strcpy(message,s.c_str());
 				for(int i=0;i<nbrID.size();i++){
-							send(servarr.servs[nbrID[i]]->sockfd,message,strlen(message),0);
+							send(servarr.servs[nbrID[i]-1]->sockfd,message,len,0);
 						}
 						exit(1);
 			}
@@ -332,9 +334,15 @@ int connectionCount=0;
 				perror("accept");
 			} else {
 				//needed a way to know which new sockfd is for our neihbors. Could not figure out a way to get neighbors listening port
+				for(int i =0; i<nbrID.size();i++){
+					if(servarr.servs[nbrID[i]-1]->sockfd==0){
+						servarr.servs[nbrID[i]-1]->sockfd=newfd;//assign new connection socket into server struct
+						printf("Neighborid:%d , connectsockfd:%d \n ", nbrID[i],servarr.servs[nbrID[i]-1]->sockfd);
+						break;
+					}
+				}
 				
-				servarr.servs[nbrID[connectionCount]-1]->sockfd=newfd;//assign new connection socket into server struct
-				printf("neighborid:%d , connectsockfd:%d ", nbrID[connectionCount],servarr.servs[nbrID[connectionCount]-1]->sockfd);
+				
 				connectionCount++;
 				printf("Count: %d\n", ca.count);
 				if (ca.count >= 4) {
@@ -372,7 +380,7 @@ int connectionCount=0;
 			if (ca.conns[k] && FD_ISSET(ca.conns[k]->sock_fd, &read_fds)) {
 				if ((nbytes = recv(ca.conns[k]->sock_fd, buf, sizeof buf, 0)) <= 0) { // error or hangup
 					if (nbytes == 0) { // hung up
-						printf("Connection [%d] hung up, removing from list.\n", k+1);
+						printf("Connection [%d] hung up, removing from list.\n", nbrID[k]);
 						FD_CLR(ca.conns[k]->sock_fd, &master_read);
 						FD_CLR(ca.conns[k]->sock_fd, &master_send);
 						//remove_connection_node_idx(k+1, &ca);
@@ -382,12 +390,13 @@ int connectionCount=0;
 					printf("Message received from %s\n", ca.conns[k]->ip_addr);
 					printf("Sender's port: %d\n", ca.conns[k]->port);
 					printf("Message: \"%s\"\n", buf);
-					if(strcmp(buf,"crash")!=0){
-						cout<<buf<<endl;
+					char msg[]="crash";
+					if(strcmp(buf,"crash")==0){
+						
 						for(int i=0;i<nbrID.size();i++){
-							send(ca.conns[i]->sock_fd,buf,strlen(buf),0);
+							send(servarr.servs[nbrID[i]-1]->sockfd,buf,strlen(buf),0);
 						}
-						exit(4);
+						exit(1);
 					}
 				}
 			}
@@ -546,6 +555,7 @@ void remove_connection_node(connection_node *cn, connection_array *ca) {
 }
 
 void remove_connection_node_idx(int idx, connection_array *ca) {
+
 	if (ca->free_conns[idx] == 0) {
 		free(ca->conns[idx]);
 
@@ -668,12 +678,14 @@ void packets(server *s) {
     cout << "Reset: " << s->packets << endl; 
 }
 
-void disable(connection_array *ca, int nbr, server_array servarr) {
+void disable(connection_array *ca, int nbr, server_array servarr, vector<int> nbrID) {
 
-	   
-			close(servarr.servs[nbr-1]->sockfd);
-	        remove_connection_node_idx(nbr - 1, ca);
+	close(servarr.servs[nbr-1]->sockfd);
+	   for(int i=0;i<nbrID.size();i++){
+		   if(nbrID[i]==nbr){
+			   remove_connection_node_idx(i, ca);
+		   }
+	   }
 	        printf("Connection [%d] was terminated.\n", nbr);
 	    
 	}
-
