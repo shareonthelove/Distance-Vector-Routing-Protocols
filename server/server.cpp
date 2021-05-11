@@ -76,6 +76,7 @@ void *get_in_addr(struct sockaddr *sa);
 connection_node* create_connection_node(int sock_fd);
 void myip(char* ip);
 void disable(connection_array *ca, int num,server_array servarr, vector<int> nbrID);
+void update(int serverA, int serverB, int newCost,int costarray[][4]);
 
 int main(int argc, char* argv[]){
 
@@ -268,6 +269,7 @@ int connectionCount=0;
 				if(result!=0){
 					servarr.servs[nbrID[i]-1]->sockfd=result;
 					printf("NeighborID: %d, Sockfd:%d \n", nbrID[i],result);
+					//send(result,)
 				}
 				free(my_ip);
 		}
@@ -288,6 +290,25 @@ int connectionCount=0;
 			token=strtok(buf," ");
 			char *newline =strchr(token, '\n');
 			if(newline)*newline=0;
+			if (strcmp(token,"update")==0){
+				char*serverA,*serverB,*newCost,*newline_idx;
+				int sA,sB,nc;
+				serverA=strtok(NULL," ");
+				sA=atoi(serverA);
+				serverB=strtok(NULL," ");
+				sB=atoi(serverB);
+				newCost=strtok(NULL," ");
+				nc=atoi(newCost);
+
+				newline_idx = strchr(newCost, '\n');
+				if (newline_idx) *newline_idx = 0;
+				//cost[sA-1][sB-1]=nc;
+				//cost[sB-1][sA-1]=nc;
+				//displayCost(cost);
+				update(sA,sB,nc,cost);
+				send(servarr.servs[sB-1]->sockfd,newCost,strlen(newCost),0);
+				continue;
+			}
 			if(strcmp(token,"disable")==0){
 				char *id_str, *newline_idx;
 				int idx;
@@ -397,6 +418,10 @@ int connectionCount=0;
 							send(servarr.servs[nbrID[i]-1]->sockfd,buf,strlen(buf),0);
 						}
 						exit(1);
+					}
+					else {
+						int c=atoi(buf);
+						update(myID,nbrID[k],c,cost);
 					}
 				}
 			}
@@ -583,8 +608,6 @@ void close_connection_array(connection_array *ca) {
 }
 
 
-
-
 int connector(connection_array *ca, char* ip, int port, char* my_ip, int my_port, fd_set *read, fd_set *send) {
 
     int sockfd;
@@ -688,4 +711,10 @@ void disable(connection_array *ca, int nbr, server_array servarr, vector<int> nb
 	   }
 	        printf("Connection [%d] was terminated.\n", nbr);
 	    
+	}
+	
+	void update(int serverA, int serverB, int newCost, int costarray[][4]){
+		costarray[serverA-1][serverB-1]=newCost;
+		costarray[serverB-1][serverA-1]=newCost;
+		displayCost(costarray);
 	}
