@@ -341,7 +341,7 @@ int connectionCount=0;
 				for(int i=0;i<nbrID.size();i++){
 							send(servarr.servs[nbrID[i]-1]->sockfd,message,len,0);
 						}
-						exit(1);
+				exit(1);
 			}
 
 			else if(strcmp(token, "packets") == 0){
@@ -349,7 +349,7 @@ int connectionCount=0;
 			}
 
 			else if(strcmp(token, "step") == 0){
-				char message[] = "";
+				char message[] = "step";
 				int len = strlen(message); 
 				
 				for(int i=0;i<nbrID.size();i++){
@@ -359,10 +359,6 @@ int connectionCount=0;
 
 			else if(strcmp(token, "display") == 0){
 				displayCost(cost); 
-			}
-			
-			else{
-				cout << "Incorrect command. Please try again " << endl; 
 			}
 			
 		}
