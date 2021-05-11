@@ -30,7 +30,7 @@ typedef struct server {
     int     neighborID[4];
     int     port;  
     char    ip[20]; 
-	int		packets=0;
+	int		packets;
 	int		sockfd=0;
 } server;
 
@@ -138,8 +138,9 @@ char*data=&row[0];
 		cout<<row<<endl;
 
 		//need to initialize to 0
-		//server1.packets = 0; 
-		//server1.packets++; //for testing
+		server1.packets = 0; 
+		server1.packets++; //for testing
+        packets(&server1); 
 		
      }else {
 		 cout<<"Unable to open file";
@@ -342,20 +343,25 @@ char*data=&row[0];
 
 			}
 			else if(strcmp(token,"crash")==0){
-				char message[]="crash";
+				char *message="crash";
 				int len=strlen(message);
 				//string s ="crash";
 				//strcpy(message,s.c_str());
 				for(int i=0;i<nbrID.size();i++){
 							send(servarr.servs[nbrID[i]-1]->sockfd,message,len,0);
 						}
-				exit(1);
+						exit(1);
 			}
 
 			else if(strcmp(token, "packets") == 0){
 				packets(&server1);
 			}
 
+			else if(strcmp(token, "display") == 0){
+				displayCost(cost); 
+			}
+
+			//still a work in progress
 			else if(strcmp(token, "step") == 0){
 				char message[] = "step";
 				int len = strlen(message); 
@@ -363,10 +369,6 @@ char*data=&row[0];
 				for(int i=0;i<nbrID.size();i++){
 					send(servarr.servs[nbrID[i]-1]->sockfd,message,len,0);
 				}
-			}
-
-			else if(strcmp(token, "display") == 0){
-				displayCost(cost); 
 			}
 			
 		}
@@ -436,8 +438,6 @@ char*data=&row[0];
 					printf("Message received from %s\n", ca.conns[k]->ip_addr);
 					printf("Sender's port: %d\n", ca.conns[k]->port);
 					printf("Message: \"%s\"\n", buf);
-					server1.packets++; 
-
 					char msg[]="crash";
 					if(strcmp(buf,"crash")==0){
 						
@@ -743,6 +743,7 @@ void packets(server *s) {
     int packets = s->packets;
     cout << "Number of packets: " << packets << endl;
     s->packets = 0; //sets packets to 0 after command has been called
+    cout << "Reset: " << s->packets << endl; 
 }
 
 void disable(connection_array *ca, int nbr, server_array servarr, vector<int> nbrID) {
@@ -761,9 +762,6 @@ void disable(connection_array *ca, int nbr, server_array servarr, vector<int> nb
 		costarray[serverA-1][serverB-1]=newCost;
 		costarray[serverB-1][serverA-1]=newCost;
 		displayCost(costarray);
-<<<<<<< HEAD
-	}
-=======
 	}
 
 	string makeRow(string line,string str){
@@ -784,5 +782,3 @@ void displayCommand(int cost[4][4] ){
         cout<<endl;
     }
 }
-	
->>>>>>> be249070f6c433ad7066929b0418bd04e2641cf0
