@@ -60,11 +60,13 @@ void fillServInfo();
 void initServArr(server_array *s);
 void addServer(server *s,server_array *a);
 server* initServer(string str,server *s);
-int initCost(int cost_arr[][4],string line);
+int initCost(int cost_arr[][4],string line, string row);
 void displayCost(int cost[][4]);
 void initArr(int cost[][4]);
 vector<int> findNeighbors(int cost[][4],int serverID);
 void packets (server *s);
+string makeRow(string line, string row);
+void addData(char line[],int serverID, int cost[][4]);
 
 void initialize_connection_array(connection_array *ca);
 void add_connection_node(connection_node *cn, connection_array *ca);
@@ -77,7 +79,7 @@ connection_node* create_connection_node(int sock_fd);
 void myip(char* ip);
 void disable(connection_array *ca, int num,server_array servarr, vector<int> nbrID);
 void update(int serverA, int serverB, int newCost,int costarray[][4]);
-
+void displayCommand(int cost[4][4]);
 int main(int argc, char* argv[]){
 
 
@@ -93,6 +95,8 @@ char* top_file = argv[2];
 char* routing_interval = argv[4];
 int sockfd;
 int connectionCount=0;
+string row;
+char*data=&row[0];
 
 
     string tinput = argv[1];
@@ -113,7 +117,8 @@ int connectionCount=0;
         while(getline(myfile,line)){
             //stringstream ss(line);
             if(i>5){
-               myID= initCost(cost,line);
+               myID= initCost(cost,line,row);
+			   row=makeRow(line,row);
             }else{
             switch (i)
             {
@@ -130,6 +135,7 @@ int connectionCount=0;
         }
         displayCost(cost);
         myfile.close();
+		cout<<row<<endl;
 
 		//need to initialize to 0
 		//server1.packets = 0; 
@@ -268,7 +274,9 @@ int connectionCount=0;
 				if(result!=0){
 					servarr.servs[nbrID[i]-1]->sockfd=result;
 					printf("NeighborID: %d, Sockfd:%d \n", nbrID[i],result);
-					//send(result,)
+					//char *data=&row[0];
+					send(result,data,strlen(data),0);
+					displayCost(cost);
 				}
 				free(my_ip);
 		}
@@ -382,6 +390,7 @@ int connectionCount=0;
 				
 				connectionCount++;
 				printf("Count: %d\n", ca.count);
+				send(newfd,data,strlen(data),0);
 				if (ca.count >= 4) {
 					int bytes_sent;
 					char rejection[]  = "Rejected connection: The client you are trying to connect to is full. Try again later.";
@@ -436,6 +445,9 @@ int connectionCount=0;
 							send(servarr.servs[nbrID[i]-1]->sockfd,buf,strlen(buf),0);
 						}
 						exit(1);
+					}else if(strlen(buf)>1){
+						addData(buf,nbrID[k],cost);
+						displayCost(cost);
 					}
 					else {
 						int c=atoi(buf);
@@ -494,7 +506,7 @@ server* initServer(string str, server *s){
     //cout<<"Port: "<<s->port<<endl;
     return s;
 }
-int initCost(int cost_arr[][4],string line){
+int initCost(int cost_arr[][4],string line, string row){
     int host, neighbor,cost;
     string token;
     int j=0;
@@ -506,13 +518,28 @@ int initCost(int cost_arr[][4],string line){
                     break;
             case 1: neighbor=stoi(token);
                     break;
-            case 2: cost=stoi(token);
+            case 2: 
+					cost=stoi(token);
                     break;
         }j++;
     }
     cost_arr[host-1][neighbor-1] = cost;
     return host;
 }
+ void addData(char line[],int serverID, int cost[][4]){
+		char *token;
+		token=strtok(line," ");
+		int i =0;
+				while (token!=NULL)
+				{
+					if(i!=serverID-1){
+					cost[serverID-1][i]=atoi(token);
+					token=strtok(NULL," ");
+					}
+					i++;
+				}
+	}
+
 void displayCost(int cost[][4]){
     for(int i =0;i<4;i++){
         for(int j=0;j<4;j++){
@@ -734,4 +761,28 @@ void disable(connection_array *ca, int nbr, server_array servarr, vector<int> nb
 		costarray[serverA-1][serverB-1]=newCost;
 		costarray[serverB-1][serverA-1]=newCost;
 		displayCost(costarray);
+<<<<<<< HEAD
 	}
+=======
+	}
+
+	string makeRow(string line,string str){
+		str.append(line,4,1);
+		str.append(" ");
+		return str;
+	}
+
+void displayCommand(int cost[4][4] ){
+    printf("<SourceServerID> <NextHopServerID> <CostOfPath>\n");
+    for(int i =0;i<4;i++){
+        // i=<source server ID>;  j=<next hop server ID>;  cost[i][j]=<cost of path>
+        for(int j=0;j<4;j++){
+            if(i!=j){ //no self loops
+                cout << i <<"\t\t\t" << j << "\t\t"<<cost[i][j]<<endl;
+            }
+        }
+        cout<<endl;
+    }
+}
+	
+>>>>>>> be249070f6c433ad7066929b0418bd04e2641cf0
