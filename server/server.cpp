@@ -76,7 +76,8 @@ void *get_in_addr(struct sockaddr *sa);
 connection_node* create_connection_node(int sock_fd);
 void myip(char* ip);
 void disable(connection_array *ca, int num,server_array servarr, vector<int> nbrID);
-void update(int serverA, int serverB, int newCost,int costarray[][4]);
+void update(int serverA, int serverB, int newCost,int costarray[4][4]);
+void displayCommand(int cost[4][4]);
 
 int main(int argc, char* argv[]){
 
@@ -93,8 +94,6 @@ char* top_file = argv[2];
 char* routing_interval = argv[4];
 int sockfd;
 int connectionCount=0;
-
-
     string tinput = argv[1];
     string iinput = argv[3];
 	
@@ -110,6 +109,8 @@ int connectionCount=0;
         string line;
         int i=0;
         vector<int> r;
+
+
         while(getline(myfile,line)){
             //stringstream ss(line);
             if(i>5){
@@ -216,14 +217,12 @@ int connectionCount=0;
 		if (listener < 0) {
 			continue;
 		}
-
 		setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
 		if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) {
 			close(listener);
 			continue;
 		}
-
 		break;
 	}
 
@@ -282,7 +281,7 @@ int connectionCount=0;
 			perror("Select");
 			exit(4);
 		}
-		
+
 		if (FD_ISSET(0, &read_fds)) { // Handle command input
 			// command input
 			char *token;
@@ -306,10 +305,21 @@ int connectionCount=0;
 				//cost[sB-1][sA-1]=nc;
 				//displayCost(cost);
 				update(sA,sB,nc,cost);
+                cout<<token<< " SUCCESS"<<endl;
 				send(servarr.servs[sB-1]->sockfd,newCost,strlen(newCost),0);
 				continue;
 			}
-			if(strcmp(token,"disable")==0){
+			else if(strcmp(token,"display")==0){
+				try{
+					displayCommand(cost);
+					cout<<token<< " SUCCESS"<<endl;
+				}
+				catch(int err){
+					cout<<token<< " "<<err<<endl;
+				}
+
+			}
+			else if(strcmp(token,"disable")==0){
 				char *id_str, *newline_idx;
 				int idx;
 
@@ -329,6 +339,7 @@ int connectionCount=0;
 					FD_CLR(servarr.servs[idx-1]->sockfd,&master_send);
 
 					nbrID.erase(it);
+                    cout<<token<< " SUCCESS"<<endl;
 				}else{
 					printf("serverID %d, is not a neighbor",idx);
 				}
@@ -342,9 +353,23 @@ int connectionCount=0;
 				for(int i=0;i<nbrID.size();i++){
 							send(servarr.servs[nbrID[i]-1]->sockfd,message,len,0);
 						}
+                cout<<token<< " SUCCESS"<<endl;
 						exit(1);
 			}
-			
+			else if(strcmp(token,"help")==0){
+			    printf("list of supported commands:\n");
+                printf("\tupdate <server ID1 > <server ID2 > <Link Cost>\n");
+                printf("\tstep\n");
+                printf("\tpackets\n");
+                printf("\tdisplay\n");
+                printf("\tdisable <server ID>");
+                printf("\thelp\n");
+                printf("\tcrash\n");
+			}
+			else{
+			    printf("Error: %s is not a proper command.", token);
+			    printf("To view all supported commands type help\n");
+			}
 		}
 
 		if (FD_ISSET(listener, &read_fds)) { // Process New Connection
@@ -575,12 +600,10 @@ void remove_connection_node(connection_node *cn, connection_array *ca) {
 			return;
 		}
 	}
-
 	perror("Could not find connection in the connection array.");
 }
 
 void remove_connection_node_idx(int idx, connection_array *ca) {
-
 	if (ca->free_conns[idx] == 0) {
 		free(ca->conns[idx]);
 
@@ -606,8 +629,6 @@ void close_connection_array(connection_array *ca) {
 	}
 	return;
 }
-
-
 int connector(connection_array *ca, char* ip, int port, char* my_ip, int my_port, fd_set *read, fd_set *send) {
 
     int sockfd;
@@ -653,7 +674,8 @@ int connector(connection_array *ca, char* ip, int port, char* my_ip, int my_port
         inet_aton(ip, &server_add.sin_addr);
 
         // Checking if the connection was successful
-        if((connected = connect(sockfd, (struct sockaddr *)&server_add, sizeof(server_add))) < 0) {
+        connected = connect(sockfd, (struct sockaddr *)&server_add, sizeof(server_add));
+        if(connected < 0) {
             printf("Connection was unsuccessful. Please try again.\n");
 			return 0;
         }
@@ -679,8 +701,6 @@ void myip(char* ip) {
 	// struct ifaddrs *ifaddr, *ifa;
 	// int family, s;
 	// char host[NI_MAXHOST];
-
-	
     struct ifaddrs *ifap, *ifa;
     struct sockaddr_in *sa;
     char *addr;
@@ -713,8 +733,22 @@ void disable(connection_array *ca, int nbr, server_array servarr, vector<int> nb
 	    
 	}
 	
-	void update(int serverA, int serverB, int newCost, int costarray[][4]){
+	void update(int serverA, int serverB, int newCost, int costarray[4][4]){
 		costarray[serverA-1][serverB-1]=newCost;
 		costarray[serverB-1][serverA-1]=newCost;
 		displayCost(costarray);
 	}
+
+
+void displayCommand(int cost[4][4] ){
+    printf("<SourceServerID> <NextHopServerID> <CostOfPath>\n");
+    for(int i =0;i<4;i++){
+        // i=<source server ID>;  j=<next hop server ID>;  cost[i][j]=<cost of path>
+        for(int j=0;j<4;j++){
+            if(i!=j){ //no self loops
+                cout << i <<"\t\t\t" << j << "\t\t"<<cost[i][j]<<endl;
+            }
+        }
+        cout<<endl;
+    }
+}
