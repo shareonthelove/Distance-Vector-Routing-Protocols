@@ -30,7 +30,7 @@ typedef struct server {
     int     neighborID[4];
     int     port;  
     char    ip[20]; 
-	int		packets;
+	int		packets = 0;
 	int		sockfd=0;
 } server;
 
@@ -138,9 +138,9 @@ char*data=&row[0];
 		cout<<row<<endl;
 
 		//need to initialize to 0
-		server1.packets = 0; 
-		server1.packets++; //for testing
-        packets(&server1); 
+		//server1.packets = 0; 
+		//server1.packets++; //for testing
+        //packets(&server1); 
 		
      }else {
 		 cout<<"Unable to open file";
@@ -314,6 +314,7 @@ char*data=&row[0];
 				//cost[sB-1][sA-1]=nc;
 				//displayCost(cost);
 				update(sA,sB,nc,cost);
+				cout << "update SUCCESS" << endl; 
 				send(servarr.servs[sB-1]->sockfd,newCost,strlen(newCost),0);
 				continue;
 			}
@@ -335,7 +336,6 @@ char*data=&row[0];
 					disable(&ca, idx,servarr,nbrID);
 					FD_CLR(servarr.servs[idx-1]->sockfd,&master_read);
 					FD_CLR(servarr.servs[idx-1]->sockfd,&master_send);
-
 					nbrID.erase(it);
 				}else{
 					printf("serverID %d, is not a neighbor",idx);
@@ -355,10 +355,12 @@ char*data=&row[0];
 
 			else if(strcmp(token, "packets") == 0){
 				packets(&server1);
+				cout << "packets SUCCESS" << endl; 
 			}
 
 			else if(strcmp(token, "display") == 0){
-				displayCost(cost); 
+				displayCommand(cost); 
+				cout << "display SUCCESS" << endl; 
 			}
 
 			//still a work in progress
@@ -439,6 +441,7 @@ char*data=&row[0];
 					printf("Sender's port: %d\n", ca.conns[k]->port);
 					printf("Message: \"%s\"\n", buf);
 					char msg[]="crash";
+					server1.packets++; 
 					if(strcmp(buf,"crash")==0){
 						
 						for(int i=0;i<nbrID.size();i++){
@@ -743,7 +746,7 @@ void packets(server *s) {
     int packets = s->packets;
     cout << "Number of packets: " << packets << endl;
     s->packets = 0; //sets packets to 0 after command has been called
-    cout << "Reset: " << s->packets << endl; 
+    //cout << "Reset: " << s->packets << endl; 
 }
 
 void disable(connection_array *ca, int nbr, server_array servarr, vector<int> nbrID) {
